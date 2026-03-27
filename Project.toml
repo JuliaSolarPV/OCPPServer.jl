@@ -1,0 +1,10 @@
+name = "OCPPServer"
+uuid = "676c5a51-a8ef-5385-87a6-11d0f7ce946f"
+authors = ["Stefan de Lange <langestefan@msn.com>"]
+version = "0.1.0"
+
+[workspace]
+projects = ["test", "docs"]
+
+[compat]
+julia = "1.10"
