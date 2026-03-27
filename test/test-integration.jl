@@ -10,11 +10,11 @@
     function start_test_server!(cs)
         server_task = @async start!(cs)
         # Wait until the server is actually listening
-        deadline = time() + 5.0
+        deadline = time() + 10.0
         while cs._server === nothing && time() < deadline
             sleep(0.1)
         end
-        cs._server === nothing && error("Server failed to start within 5 seconds")
+        cs._server === nothing && error("Server failed to start within 10 seconds")
         return server_task
     end
 

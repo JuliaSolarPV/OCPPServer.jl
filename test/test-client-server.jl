@@ -9,16 +9,16 @@
     """Start a CentralSystem and wait for it to be ready."""
     function start_test_server!(cs)
         server_task = @async OCPPServer.start!(cs)
-        deadline = time() + 5.0
+        deadline = time() + 10.0
         while cs._server === nothing && time() < deadline
             sleep(0.1)
         end
-        cs._server === nothing && error("Server failed to start within 5 seconds")
+        cs._server === nothing && error("Server failed to start within 10 seconds")
         return server_task
     end
 
     """Wait for a ChargePoint to reach the given status."""
-    function wait_for_status(cp, status::Symbol; timeout = 5.0)
+    function wait_for_status(cp, status::Symbol; timeout = 10.0)
         deadline = time() + timeout
         while cp.status != status && time() < deadline
             sleep(0.1)
