@@ -68,7 +68,7 @@ OCPP protocol schemas live in `ocpp-files/` (v1.6 and v2.0.1 JSON schemas). Desi
 - **Formatter**: JuliaFormatter with indent=4, margin=92, Unix line endings (`.JuliaFormatter.toml`)
 - **Testing**: TestItemRunner + TestItems framework — tests use `@testitem`, `@testsnippet`, `@testmodule` (not standard `@testset`)
 - **Template**: Generated from BestieTemplate.jl — follow its conventions for CI, docs, and project structure
-- **Julia compat**: 1.10+
+- **Julia compat**: 1.12+
 - **do-block API**: All public registration functions (`on!`, `after!`, `subscribe!`, `set_connection_validator!`, `set_message_logger!`) have function-first method overloads for `do` block syntax
 
 ## CI/CD

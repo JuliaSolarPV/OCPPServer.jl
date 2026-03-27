@@ -1,7 +1,7 @@
 # Changes here will be overwritten by Copier
 AddPrecommitUpdateCI: false
 Authors: Stefan de Lange <langestefan@msn.com>
-JuliaMinVersion: '1.10'
+JuliaMinVersion: '1.12'
 License: MIT
 LicenseCopyrightHolders: Stefan de Lange
 PackageName: OCPPServer
