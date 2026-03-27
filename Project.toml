@@ -1,10 +1,20 @@
 name = "OCPPServer"
 uuid = "676c5a51-a8ef-5385-87a6-11d0f7ce946f"
-authors = ["Stefan de Lange <langestefan@msn.com>"]
 version = "0.1.0"
+authors = ["Stefan de Lange <langestefan@msn.com>"]
 
 [workspace]
 projects = ["test", "docs"]
 
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+OCPPData = "96fa3b67-1af3-5f07-99a6-8e4efc5edabb"
+Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
+UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
+
 [compat]
+HTTP = "1.11.0"
+JSON = "1.4.0"
 julia = "1.10"
