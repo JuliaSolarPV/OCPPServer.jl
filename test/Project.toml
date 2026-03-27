@@ -2,6 +2,7 @@
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+OCPPClient = "1ab4a031-0a20-52bf-b0ad-6a3bd01e82d0"
 OCPPData = "96fa3b67-1af3-5f07-99a6-8e4efc5edabb"
 OCPPServer = "676c5a51-a8ef-5385-87a6-11d0f7ce946f"
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
@@ -11,5 +12,6 @@ TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 
 [sources]
-OCPPData = {path = "../../OCPPData.jl"}
+OCPPClient = {url = "https://github.com/JuliaSolarPV/OCPPClient.jl"}
+OCPPData = {url = "https://github.com/JuliaSolarPV/OCPPData.jl"}
 OCPPServer = {path = ".."}
