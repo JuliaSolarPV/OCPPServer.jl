@@ -205,9 +205,8 @@ function _handle_incoming_call(
     request = _deserialize_payload(call.payload, RequestType)
 
     # 4. Call handler
-    local response
-    try
-        response = handler(session, request)
+    response = try
+        handler(session, request)
     catch e
         _emit(cs, HandlerError(session.id, call.action, e, now(UTC)))
         _send_error(cs, session, call.unique_id, "InternalError", string(e))
@@ -220,13 +219,24 @@ function _handle_incoming_call(
     _send_message(cs, session, result)
 
     # 6. Call after-handler (async, non-blocking, errors caught)
-    after_handler = get(cs.after_handlers, call.action, nothing)
+    _run_after_handler(cs, session, call.action, request, response)
+    return nothing
+end
+
+"""Run after-handler asynchronously if registered. Errors are caught and logged."""
+function _run_after_handler(
+    cs::CentralSystem,
+    session::ChargePointSession,
+    action::String,
+    request,
+    response,
+)
+    after_handler = get(cs.after_handlers, action, nothing)
     if after_handler !== nothing
         @async try
             after_handler(session, request, response)
         catch e
-            @warn "after! handler error" action = call.action charge_point = session.id exception =
-                e
+            @warn "after! handler error" action charge_point = session.id exception = e
         end
     end
     return nothing

@@ -3,7 +3,7 @@ exclude = [
   "@cite",
   "^https://github.com/.*/releases/tag/v.*$",
   "^https://doi.org/FIXME$",
-  "^https://JuliaSolarPV.github.io/OCPPServer.jl/stable$",
+  "^https://[Jj]ulia[Ss]olar[Pp][Vv].github.io/OCPPServer.jl/stable$",
   "^https://blog.esciencecenter.nl", # due to a certificate error (cf. #556)
   "zenodo.org/badge/DOI/FIXME$"
 ]
