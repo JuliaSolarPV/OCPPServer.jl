@@ -1,6 +1,8 @@
 [deps]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 OCPPClient = "1ab4a031-0a20-52bf-b0ad-6a3bd01e82d0"
 OCPPData = "96fa3b67-1af3-5f07-99a6-8e4efc5edabb"

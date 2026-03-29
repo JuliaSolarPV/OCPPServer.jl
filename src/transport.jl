@@ -6,7 +6,9 @@ Run it with `@async` or `Threads.@spawn` for non-blocking operation.
 """
 function start!(cs::CentralSystem)
     _start_server(cs)
-    return wait(cs._server)
+    server = cs._server
+    server === nothing && error("Server failed to start")
+    return wait(server)
 end
 
 """
@@ -32,8 +34,9 @@ function stop!(cs::CentralSystem)
     end
 
     # Close the server
-    if cs._server !== nothing
-        close(cs._server)
+    server = cs._server
+    if server !== nothing
+        close(server)
         cs._server = nothing
     end
     return nothing
@@ -108,7 +111,7 @@ function _handle_connection(
     _emit(cs, ChargePointConnected(cp_id, now(UTC), version))
 
     try
-        ping_task = @async _ping_loop(ws, cs.config.ping_interval)
+        @async _ping_loop(ws, cs.config.ping_interval)
         _message_loop(cs, session)
     catch e
         if !(e isa HTTP.WebSockets.WebSocketError || e isa EOFError)
@@ -131,6 +134,7 @@ end
 """Process messages from a charge point until disconnect."""
 function _message_loop(cs::CentralSystem, session::ChargePointSession)
     for raw_msg in session.ws
+        raw_msg isa AbstractString || raw_msg isa AbstractVector{UInt8} || continue
         raw = String(raw_msg)
         session.last_seen = now(UTC)
 
