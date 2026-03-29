@@ -369,3 +369,143 @@ end
     RT16 = OCPPServer._request_type("Heartbeat", :v16)
     @test RT16 == OCPPData.V16.HeartbeatRequest
 end
+
+@testitem "send_call timeout" tags = [:coverage] setup = [CoverageSetup] begin
+    using OCPPServer, OCPPClient, OCPPData, OCPPData.V16, HTTP, Dates
+
+    cs = CentralSystem(; port = 0, host = "127.0.0.1")
+
+    OCPPServer.on!(cs, "BootNotification") do session, req
+        return BootNotificationResponse(;
+            current_time = Dates.format(now(UTC), dateformat"yyyy-mm-ddTHH:MM:SS\Z"),
+            interval = 300,
+            status = RegistrationAccepted,
+        )
+    end
+
+    start_test_server!(cs)
+    port = get_server_port(cs)
+
+    # Client that does NOT handle Reset — so send_call will timeout
+    cp = OCPPClient.ChargePoint("CPTMO", "ws://127.0.0.1:$(port)/ocpp"; reconnect = false)
+    @async OCPPClient.connect!(cp)
+    deadline = time() + 10.0
+    while cp.status != :connected && time() < deadline
+        sleep(0.1)
+    end
+
+    OCPPClient.boot_notification(
+        cp;
+        charge_point_vendor = "Test",
+        charge_point_model = "Test",
+    )
+
+    session = OCPPServer.get_session(cs, "CPTMO")
+    # Very short timeout — client won't respond in time since it has no handler
+    # (OCPPClient sends CallError("NotImplemented") which triggers the CallError path)
+    @test_throws ErrorException OCPPServer.send_call(
+        session,
+        "ChangeConfiguration",
+        Dict{String,Any}("key" => "test", "value" => "1");
+        timeout = 1.0,
+    )
+
+    OCPPClient.disconnect!(cp)
+    sleep(0.3)
+    OCPPServer.stop!(cs)
+end
+
+@testitem "Malformed JSON closes connection" tags = [:coverage] setup = [CoverageSetup] begin
+    using OCPPServer, HTTP
+
+    cs = CentralSystem(; port = 0, host = "127.0.0.1")
+    start_test_server!(cs)
+    port = get_server_port(cs)
+
+    HTTP.WebSockets.open(
+        "ws://127.0.0.1:$(port)/ocpp/CPBAD";
+        headers = ["Sec-WebSocket-Protocol" => "ocpp1.6"],
+        suppress_close_error = true,
+    ) do ws
+        # Send invalid JSON — not a valid OCPP-J array
+        ws_send(ws, "this is not json")
+        sleep(0.5)
+    end
+
+    sleep(0.3)
+    @test !is_connected(cs, "CPBAD")
+    stop!(cs)
+end
+
+@testitem "after! handler error is caught" tags = [:coverage] setup = [CoverageSetup] begin
+    using OCPPServer, OCPPData, OCPPData.V16, HTTP, JSON, Dates
+
+    cs = CentralSystem(; port = 0, host = "127.0.0.1")
+
+    on!(cs, "Heartbeat") do session, req
+        return HeartbeatResponse(;
+            current_time = Dates.format(now(UTC), dateformat"yyyy-mm-ddTHH:MM:SS\Z"),
+        )
+    end
+
+    after!(cs, "Heartbeat") do session, req, resp
+        error("after handler failure")
+    end
+
+    start_test_server!(cs)
+    port = get_server_port(cs)
+
+    HTTP.WebSockets.open(
+        "ws://127.0.0.1:$(port)/ocpp/CPAFT2";
+        headers = ["Sec-WebSocket-Protocol" => "ocpp1.6"],
+    ) do ws
+        call = OCPPData.Call(OCPPData.generate_unique_id(), "Heartbeat", Dict{String,Any}())
+        ws_send(ws, OCPPData.encode(call))
+        # Response should still arrive even though after! throws
+        raw = ws_receive(ws)
+        msg = OCPPData.decode(String(raw))
+        @test msg isa OCPPData.CallResult
+    end
+
+    sleep(0.5)
+    stop!(cs)
+end
+
+@testitem "_convert_value with nested arrays" tags = [:coverage, :unit] begin
+    using OCPPServer, OCPPData, OCPPData.V16, JSON, Dates
+
+    # Create a response with arrays to exercise _convert_value vector path
+    mv = MeterValuesResponse()
+    d = OCPPServer._serialize_response(mv)
+    @test d isa Dict{String,Any}
+
+    # Directly test _convert_value with a vector
+    result = OCPPServer._convert_value([1, 2, 3])
+    @test result == Any[1, 2, 3]
+
+    # Nested dict in vector
+    result2 = OCPPServer._convert_value([Dict("a" => 1)])
+    @test result2[1] isa Dict{String,Any}
+    @test result2[1]["a"] == 1
+end
+
+@testitem "Unmatched response warning" tags = [:coverage] setup = [CoverageSetup] begin
+    using OCPPServer, OCPPData, HTTP
+
+    cs = CentralSystem(; port = 0, host = "127.0.0.1")
+    start_test_server!(cs)
+    port = get_server_port(cs)
+
+    HTTP.WebSockets.open(
+        "ws://127.0.0.1:$(port)/ocpp/CPUNM";
+        headers = ["Sec-WebSocket-Protocol" => "ocpp1.6"],
+    ) do ws
+        # Send a CallResult with a unique_id that nobody is waiting for
+        fake_result = OCPPData.CallResult("nonexistent-id", Dict{String,Any}())
+        ws_send(ws, OCPPData.encode(fake_result))
+        sleep(0.3)
+    end
+
+    sleep(0.2)
+    stop!(cs)
+end
