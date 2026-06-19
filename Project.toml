@@ -19,7 +19,7 @@ OCPPData = {url = "https://github.com/JuliaSolarPV/OCPPData.jl"}
 
 [compat]
 Dates = "1"
-HTTP = "1.11.0"
+HTTP = "1.11.0, 2.3"
 JSON = "1.4.0"
 OCPPData = "0.1"
 Sockets = "1"
